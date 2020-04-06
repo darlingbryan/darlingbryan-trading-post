@@ -40,3 +40,25 @@ exports.validateLoginData = (data) => {
     valid: Object.keys(errors).length === 0 ? true : false,
   }
 }
+
+exports.reduceContactDetails = (data) => {
+  let errors = {}
+  let newContactDetails = {}
+  if (isEmpty(data.name.trim())) {
+    errors.name = "Must not be empty"
+  } else {
+    newContactDetails.name = data.name
+  }
+  if (!isEmpty(data.email.trim())) {
+    if (!isEmail(data.email.trim())) {
+      errors.email = "Must be a valid email"
+    } else {
+      newContactDetails.email = data.email
+    }
+  }
+  newContactDetails.city = data.city
+  newContactDetails.address = data.address
+  newContactDetails.phone = data.phone
+
+  return { errors, newContactDetails }
+}

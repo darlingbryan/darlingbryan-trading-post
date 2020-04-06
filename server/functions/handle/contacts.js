@@ -1,4 +1,5 @@
 const { db, admin } = require("../util/admin")
+const { reduceContactDetails } = require("../util/validators")
 
 //Get the user's contacts
 exports.getContacts = async (req, res) => {
@@ -30,14 +31,12 @@ exports.getContacts = async (req, res) => {
 
 //Create a new Contact
 exports.addContact = async (req, res) => {
-  const newContactDetails = {
-    owner: req.user.handle,
-    name: req.body.name,
-    email: req.body.email,
-    phone: req.body.phone,
-    address: req.body.address,
-    city: req.body.city,
-  }
+  //Shape data
+  const { newContactDetails, errors } = reduceContactDetails(req.body)
+
+  if (!Object.entries(errors).length === 0) return res.status(400).json(errors)
+
+  newContactDetails.owner = req.user.handle
 
   try {
     //Check if contact already exist
@@ -95,6 +94,46 @@ exports.deleteContact = async (req, res) => {
       .doc(`users/${owner}`)
       .update("contacts", admin.firestore.FieldValue.arrayRemove(contactId))
     return res.json({ message: "Contact successfully deleted." })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: err.code })
+  }
+}
+
+//Update contact
+exports.updateContactDetails = async (req, res) => {
+  try {
+    //Check if contact name is already used
+    const contactSnapshot = await db
+      .collection("contacts")
+      .where("name", "==", req.body.name)
+      .where("owner", "==", req.user.handle)
+      .get()
+
+    console.log(contactSnapshot.size)
+
+    if (contactSnapshot.size > 1)
+      return res
+        .status(404)
+        .json({ error: "One of your contact has that name already." })
+
+    //Validate data
+    const { newContactDetails, errors } = reduceContactDetails(req.body)
+    if (!Object.entries(errors).length === 0)
+      return res.status(400).json(errors)
+
+    const updatedDetails = await db
+      .doc(`/contacts/${req.params.contactId}`)
+      .update({
+        name: newContactDetails.name,
+        email: newContactDetails.email,
+        city: newContactDetails.city,
+        address: newContactDetails.address,
+        phone: newContactDetails.phone,
+      })
+    updatedDetails.contactId = req.params.contactId
+
+    return res.status(200).json(updatedDetails)
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: err.code })

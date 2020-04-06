@@ -4,7 +4,12 @@ const cors = require("cors")
 app.use(cors())
 
 const { signup, login } = require("./handle/users")
-const { getContacts, addContact, deleteContact } = require("./handle/contacts")
+const {
+  getContacts,
+  addContact,
+  deleteContact,
+  updateContactDetails,
+} = require("./handle/contacts")
 const { FBAuth } = require("./util/FBAuth")
 
 //User routes
@@ -15,6 +20,7 @@ app.post("/login", login)
 app.get("/contacts", FBAuth, getContacts)
 app.post("/contacts", FBAuth, addContact)
 app.delete("/contacts/:contactId", FBAuth, deleteContact)
+app.put("/contacts/:contactId", FBAuth, updateContactDetails)
 
 exports.api = functions.region("us-central1").https.onRequest(app)
 
