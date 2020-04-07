@@ -9,6 +9,7 @@ const {
   addContact,
   deleteContact,
   updateContactDetails,
+  getOneContact,
 } = require("./handle/contacts")
 
 const {
@@ -26,6 +27,7 @@ app.post("/login", login)
 
 //Contact routes
 app.get("/contacts", FBAuth, getContacts)
+app.get("/contacts/:contactId", FBAuth, getOneContact)
 app.post("/contacts", FBAuth, addContact)
 app.delete("/contacts/:contactId", FBAuth, deleteContact)
 app.put("/contacts/:contactId", FBAuth, updateContactDetails)

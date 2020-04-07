@@ -1,5 +1,5 @@
 const { db, admin } = require("../util/admin")
-const { reduceContactDetails } = require("../util/validators")
+const { reduceContactDetails, checkOwnership } = require("../util/validators")
 
 //Get the user's contacts
 exports.getContacts = async (req, res) => {
@@ -70,6 +70,16 @@ exports.addContact = async (req, res) => {
 exports.deleteContact = async (req, res) => {
   const contactId = req.params.contactId
   const owner = req.user.handle
+  const { data, userOwnsData, error } = await checkOwnership(
+    contactId,
+    owner,
+    "contacts"
+  )
+
+  if (error) return res.status(500).json({ error: error })
+
+  if (!userOwnsData) return res.json({ error: "Contact not found." })
+
   console.log(contactId)
 
   try {
@@ -101,6 +111,15 @@ exports.deleteContact = async (req, res) => {
 
 //Update contact
 exports.updateContactDetails = async (req, res) => {
+  const { data, userOwnsData, error } = await checkOwnership(
+    req.params.contactId,
+    req.user.handle,
+    "contacts"
+  )
+
+  if (error) return res.status(500).json({ error: error })
+
+  if (!userOwnsData) return res.json({ error: "Contact not found." })
   try {
     //Check if contact name is already used
     const contactSnapshot = await db
@@ -135,4 +154,20 @@ exports.updateContactDetails = async (req, res) => {
     console.error(err)
     return res.status(500).json({ error: err.code })
   }
+}
+
+//Get one contact
+exports.getOneContact = async (req, res) => {
+  //Check if user owns contact
+  const { data, userOwnsData, error } = await checkOwnership(
+    req.params.contactId,
+    req.user.handle,
+    "contacts"
+  )
+
+  if (error) return res.status(500).json({ error: error })
+
+  if (!userOwnsData) return res.json({ error: "Contact not found." })
+
+  return res.status(200).json(data)
 }
