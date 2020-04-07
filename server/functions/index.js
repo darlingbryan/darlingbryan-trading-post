@@ -11,7 +11,12 @@ const {
   updateContactDetails,
 } = require("./handle/contacts")
 
-const { addProduct, getProducts, deleteProduct } = require("./handle/products")
+const {
+  addProduct,
+  getProducts,
+  deleteProduct,
+  updateProductDetails,
+} = require("./handle/products")
 const { FBAuth } = require("./util/FBAuth")
 
 //User routes
@@ -28,6 +33,7 @@ app.put("/contacts/:contactId", FBAuth, updateContactDetails)
 app.post("/products", FBAuth, addProduct)
 app.get("/products", FBAuth, getProducts)
 app.delete("/products/:productId", FBAuth, deleteProduct)
+app.put("/products/:productId", FBAuth, updateProductDetails)
 
 exports.api = functions.region("us-central1").https.onRequest(app)
 

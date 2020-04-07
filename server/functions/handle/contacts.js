@@ -109,8 +109,6 @@ exports.updateContactDetails = async (req, res) => {
       .where("owner", "==", req.user.handle)
       .get()
 
-    console.log(contactSnapshot.size)
-
     if (contactSnapshot.size > 1)
       return res
         .status(404)
@@ -132,7 +130,7 @@ exports.updateContactDetails = async (req, res) => {
       })
     updatedDetails.contactId = req.params.contactId
 
-    return res.status(200).json(updatedDetails)
+    return res.status(200).json({ message: "Contact updated." })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: err.code })
