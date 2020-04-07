@@ -9,13 +9,14 @@ exports.getContacts = async (req, res) => {
     const contactIds = userSnaphot.data().contacts
     const promises = []
 
-    //Fect contact details from contacts collection
-    contactIds.forEach((contactid) => {
-      const p = db.doc(`contacts/${contactid}`).get()
+    //Fetch contact details from contacts collection
+    contactIds.forEach((contactId) => {
+      const p = db.doc(`contacts/${contactId}`).get()
       promises.push(p)
     })
     const contactsSnapshots = await Promise.all(promises)
 
+    //Shape data
     const contacts = []
     contactsSnapshots.forEach((snap) => {
       const data = snap.data()
@@ -31,7 +32,7 @@ exports.getContacts = async (req, res) => {
 
 //Create a new Contact
 exports.addContact = async (req, res) => {
-  //Shape data
+  //Reduce data
   const { newContactDetails, errors } = reduceContactDetails(req.body)
 
   if (!Object.entries(errors).length === 0) return res.status(400).json(errors)
@@ -48,15 +49,13 @@ exports.addContact = async (req, res) => {
 
     if (!contactSnapshot.empty)
       return res.status(404).json({ error: "Owner has contact already." })
-
     //Add contact to contacts collection
     const newContact = await db.collection("contacts").add(newContactDetails)
-    const newContactId = newContact.id
     //Add contact to user's contacts array
+    const newContactId = newContact.id
     await db.doc(`users/${req.user.handle}`).update({
       contacts: admin.firestore.FieldValue.arrayUnion(newContactId),
     })
-
     const responseData = newContactDetails
     responseData.contactId = newContact.id
     res.status(200).json(responseData)
