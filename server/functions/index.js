@@ -16,6 +16,7 @@ const {
   getProducts,
   deleteProduct,
   updateProductDetails,
+  getOneProducts,
 } = require("./handle/products")
 const { FBAuth } = require("./util/FBAuth")
 
@@ -32,6 +33,7 @@ app.put("/contacts/:contactId", FBAuth, updateContactDetails)
 //Product routes
 app.post("/products", FBAuth, addProduct)
 app.get("/products", FBAuth, getProducts)
+app.get("/products/:productId", FBAuth, getOneProducts)
 app.delete("/products/:productId", FBAuth, deleteProduct)
 app.put("/products/:productId", FBAuth, updateProductDetails)
 

@@ -1,3 +1,5 @@
+const { admin, db } = require("./admin")
+
 const isEmail = (email) => {
   const regEx = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   if (email.match(regEx)) return true
@@ -61,4 +63,36 @@ exports.reduceContactDetails = (data) => {
   newContactDetails.phone = data.phone
 
   return { errors, newContactDetails }
+}
+
+//Check if user owns data
+exports.checkOwnership = async (dataId, owner, collection) => {
+  let data
+  let userOwnsData
+  let error
+
+  try {
+    await db
+      .collection(collection)
+      .where(admin.firestore.FieldPath.documentId(), "==", dataId)
+      .where("owner", "==", owner)
+      .get()
+      .then((snapshot) => {
+        if (snapshot.empty) {
+          data = null
+          userOwnsData = false
+        } else {
+          snapshot.forEach((snap) => {
+            data = snap.data()
+          })
+          userOwnsData = true
+        }
+        return
+      })
+  } catch (err) {
+    console.error(err)
+    error = err.code
+  }
+
+  return { data, userOwnsData, error }
 }

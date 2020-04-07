@@ -1,5 +1,5 @@
 const { db, admin } = require("../util/admin")
-
+const { checkOwnership } = require("../util/validators")
 //Get user's products
 exports.getProducts = async (req, res) => {
   try {
@@ -64,21 +64,16 @@ exports.deleteProduct = async (req, res) => {
 
   try {
     //check if user owns product
-    const userOwnProduct = await db
-      .collection("products")
-      .where(admin.firestore.FieldPath.documentId(), "==", productId)
-      .where("owner", "==", owner)
-      .get()
-      .then((snapshot) => {
-        if (snapshot.empty) {
-          return false
-        } else {
-          return true
-        }
-      })
+    const { data, userOwnsData, error } = await checkOwnership(
+      req.params.productId,
+      req.user.handle,
+      "products"
+    )
 
-    if (userOwnProduct)
-      return res.json({ error: "You do not own this product." })
+    if (error) return res.status(500).json({ error: error })
+
+    if (!userOwnsData) return res.json({ error: "Product not found." })
+
     //delete product in products collection
     await db.doc(`products/${productId}`).delete()
 
@@ -97,6 +92,16 @@ exports.deleteProduct = async (req, res) => {
 exports.updateProductDetails = async (req, res) => {
   if (req.body.name.trim() === "")
     return res.status(400).json({ errors: "Product name must not be empty." })
+
+  const { data, userOwnsData, error } = await checkOwnership(
+    req.params.productId,
+    req.user.handle,
+    "products"
+  )
+
+  if (error) return res.status(500).json({ error: error })
+
+  if (!userOwnsData) return res.json({ error: "Product not found." })
 
   try {
     const productSnapshot = await db
@@ -119,4 +124,20 @@ exports.updateProductDetails = async (req, res) => {
     console.error(err)
     return res.status(500).json({ error: err.code })
   }
+}
+
+//Get one product
+exports.getOneProducts = async (req, res) => {
+  //Check if user owns product
+  const { data, userOwnsData, error } = await checkOwnership(
+    req.params.productId,
+    req.user.handle,
+    "products"
+  )
+
+  if (error) return res.status(500).json({ error: error })
+
+  if (!userOwnsData) return res.json({ error: "Product not found." })
+
+  return res.status(200).json(data)
 }
