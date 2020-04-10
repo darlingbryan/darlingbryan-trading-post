@@ -6,9 +6,9 @@ exports.getProducts = async (req, res) => {
     //Get product ids from user's products array
     const userSnaphot = await db.doc(`users/${req.user.handle}`).get()
     const productIds = userSnaphot.data().products
-    const promises = []
 
     //Fetch products from products collection
+    const promises = []
     productIds.forEach((productId) => {
       const p = db.doc(`products/${productId}`).get()
       promises.push(p)
@@ -28,6 +28,7 @@ exports.getProducts = async (req, res) => {
   }
 }
 
+//Add a product
 exports.addProduct = async (req, res) => {
   newProductDetails = {
     name: req.body.name,
@@ -127,7 +128,7 @@ exports.updateProductDetails = async (req, res) => {
 }
 
 //Get one product
-exports.getOneProducts = async (req, res) => {
+exports.getOneProduct = async (req, res) => {
   //Check if user owns product
   const { data, userOwnsData, error } = await checkOwnership(
     req.params.productId,
