@@ -3,7 +3,7 @@ const app = require("express")()
 const cors = require("cors")
 app.use(cors())
 
-const { signup, login } = require("./handle/users")
+const { signup, login, getUserDetails } = require("./handle/users")
 const {
   getContacts,
   addContact,
@@ -30,6 +30,7 @@ const {
 //User routes
 app.post("/signup", signup)
 app.post("/login", login)
+app.get("/user", FBAuth, getUserDetails)
 
 //Contact routes
 app.get("/contacts", FBAuth, getContacts)
@@ -52,14 +53,3 @@ app.post("/transactions", FBAuth, addTransaction)
 app.put("/transactions/:transactionId", FBAuth, updateTransaction)
 
 exports.api = functions.region("us-central1").https.onRequest(app)
-
-//TODO Restructure Transactions
-//TODO Create CRUD Transactions
-//getTransactions
-//getOneTransaction
-//addTransaction
-//deleteTransaction
-//updateTransaction
-
-//getTransactionItems
-//addTransactionItems

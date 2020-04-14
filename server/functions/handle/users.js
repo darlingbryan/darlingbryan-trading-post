@@ -77,3 +77,23 @@ exports.login = async (req, res) => {
       .json({ general: "Wrong credentials, please try again" })
   }
 }
+
+//Get user
+exports.getUserDetails = async (req, res) => {
+  let data = {}
+  try {
+    await db
+      .doc(`/users/${req.user.handle}`)
+      .get()
+      .then((snapshot) => {
+        data.handle = snapshot.data().handle
+        data.email = snapshot.data().email
+        return
+      })
+
+    return res.status(200).json(data)
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: err.code })
+  }
+}
