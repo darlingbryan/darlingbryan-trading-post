@@ -19,6 +19,7 @@ exports.getProducts = async (req, res) => {
     const products = []
     productsSnapshots.forEach((snap) => {
       const data = snap.data()
+      console.log(snap.data())
       data.id = snap.id
       products.push(data)
     })

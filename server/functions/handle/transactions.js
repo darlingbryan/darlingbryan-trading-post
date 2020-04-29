@@ -7,18 +7,24 @@ exports.getTransactions = async (req, res) => {
     //Get transaction ids from user's transactions array
     const userSnaphot = await db.doc(`users/${req.user.handle}`).get()
     const transactionIds = userSnaphot.data().transactions
+    console.log(transactionIds)
 
     //fetch transactions from transaction collection
     const promises = []
     transactionIds.forEach((transactionId) => {
       const p = db.doc(`transactions/${transactionId}`).get()
+
       promises.push(p)
     })
+
     const transactionsSnapshots = await Promise.all(promises)
+    console.log(transactionsSnapshots)
+
     //Shape data
     const transactions = []
     transactionsSnapshots.forEach((snap) => {
       const data = snap.data()
+      console.log(snap.data())
       data.id = snap.id
       transactions.push(data)
     })
@@ -82,7 +88,7 @@ exports.addTransaction = async (req, res) => {
     completed: req.body.completed,
     createdAt: new Date().toISOString(),
     notes: {},
-    transactionItem: [],
+    transactionItems: [],
   }
 
   try {
@@ -126,12 +132,47 @@ exports.updateTransaction = async (req, res) => {
       .update({
         client: req.body.client,
         completed: req.body.completed,
+        createdAt: req.body.createdAt,
         //NOTE On the front end, grab all notes and send with new notes
         notes: req.body.notes,
         transactionItems: req.body.transactionItems,
       })
 
     return res.status(200).json({ transaction })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: err.code })
+  }
+}
+
+//Delete a transaction
+exports.deleteTransaction = async (req, res) => {
+  const transactionId = req.params.transactionId
+  const owner = req.user.handle
+
+  try {
+    //check if user owns transaction
+    const { data, userOwnsData, error } = await checkOwnership(
+      req.params.transactionId,
+      req.user.handle,
+      "transactions"
+    )
+
+    if (error) return res.status(500).json({ error: error })
+
+    if (!userOwnsData) return res.json({ error: "Transaction not found." })
+
+    //delete transaction in transactions collection
+    await db.doc(`transactions/${transactionId}`).delete()
+
+    //delete transaction in user's transactions array
+    await db
+      .doc(`users/${owner}`)
+      .update(
+        "transactions",
+        admin.firestore.FieldValue.arrayRemove(transactionId)
+      )
+    return res.json({ message: "Transaction successfully deleted." })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: err.code })

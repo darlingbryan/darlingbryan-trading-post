@@ -26,6 +26,7 @@ const {
   getOneTransaction,
   addTransaction,
   updateTransaction,
+  deleteTransaction,
 } = require("./handle/transactions")
 //User routes
 app.post("/signup", signup)
@@ -51,5 +52,6 @@ app.get("/transactions", FBAuth, getTransactions)
 app.get("/transactions/:transactionId", FBAuth, getOneTransaction)
 app.post("/transactions", FBAuth, addTransaction)
 app.put("/transactions/:transactionId", FBAuth, updateTransaction)
+app.delete("/transactions/:transactionId", FBAuth, deleteTransaction)
 
 exports.api = functions.region("us-central1").https.onRequest(app)
